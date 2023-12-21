@@ -48,6 +48,8 @@ function HomePage() {
         ? item.artist && item.artist[0]
           ? item.artist[0].name
           : "Artiste Inconnu"
+        : type === "playlist" || type === "album"
+        ? item.creator
         : "";
     const imageUrl = item.thumbnail || "https://d2be9zb8yn0dxh.cloudfront.net/"; // Remplacez par votre URL d'image par défaut
     const linkPath = type === "media" ? "#" : `/album/${item._id}`;

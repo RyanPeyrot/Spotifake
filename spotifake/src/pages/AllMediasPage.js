@@ -20,7 +20,8 @@ function AllMedia() {
     fetchMedias();
   }, []);
 
-  const handleMediaClick = (index) => {
+  const handleMediaClick = (media) => {
+    const index = medias.findIndex((m) => m._id === media._id);
     playSpecificTrack(index, medias);
   };
 
@@ -36,7 +37,7 @@ function AllMedia() {
     return (
       <div
         key={media._id}
-        onClick={() => handleMediaClick(index)}
+        onClick={() => handleMediaClick(media)}
         className="group m-2"
       >
         <div className="relative w-[250px] h-[350px] bg-black rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out cursor-pointer flex flex-col items-center pt-4">

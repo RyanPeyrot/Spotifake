@@ -23,26 +23,27 @@ function AlbumPage() {
       .then((albumData) => {
         setAlbumDetails(albumData);
 
-        // Mise à jour des détails des médias avec la gestion des artistes
+        // Mise à jour des détails des médias avec les noms des artistes
         const updatedMediaDetails = albumData.medias.map((media) => {
+          // Obtenir le nom de l'artiste pour chaque média
           const artistName =
             media.artist && media.artist.length > 0
-              ? media.artist[0].name
+              ? media.artist.map((a) => a.name).join(", ")
               : "Artiste inconnu";
           return { ...media, artistName };
         });
+
         setMediaDetails(updatedMediaDetails);
 
-        const updatedTracks = albumData.medias.map((media) => ({
+        // Mise à jour des pistes pour le contexte MusicPlayer
+        const updatedTracks = updatedMediaDetails.map((media) => ({
           ...media,
           thumbnail:
-            media.thumbnail || "https://d2be9zb8yn0dxh.cloudfront.net/", // Utilisez la vignette du média
+            media.thumbnail || "https://d2be9zb8yn0dxh.cloudfront.net/",
           title: media.title,
-          artist:
-            media.artist && media.artist.length > 0
-              ? media.artist[0].name
-              : "Artiste inconnu",
+          artist: media.artistName,
         }));
+
         setTracks(updatedTracks);
         setIsLoading(false);
       })
@@ -76,7 +77,6 @@ function AlbumPage() {
     };
   }, [playingMedia, mediaDetails, setPlayingMedia, setCurrentTrackIndex]);
 
-  // Fonction pour incrémenter le nombre d'écoutes
   const incrementListenCount = async (media, mediaIndex) => {
     const newListenCount = media.listenCount + 1;
 
@@ -143,14 +143,19 @@ function AlbumPage() {
     );
   }
 
-  // Fonction pour formater la durée des médias
   function formatDuration(seconds) {
+    if (isNaN(seconds)) {
+      return "0:00"; // Ou une autre représentation par défaut pour les durées indéterminées
+    }
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   }
 
   const defaultThumbnail = "https://d2be9zb8yn0dxh.cloudfront.net/";
+  const albumThumbnail =
+    albumDetails?.thumbnail ||
+    (mediaDetails.length > 0 ? mediaDetails[0].thumbnail : defaultThumbnail);
   const defaultAudio =
     "https://d2be9zb8yn0dxh.cloudfront.net/media/media_01 - Blueberry Hill.m4a";
 
@@ -160,7 +165,7 @@ function AlbumPage() {
       <div className="flex items-end space-x-6 mb-6">
         <img
           className="w-48 h-48 object-cover"
-          src={defaultThumbnail}
+          src={albumThumbnail}
           alt={`Couverture de l'album ${albumDetails?.name}`}
         />
         <div>
@@ -174,7 +179,7 @@ function AlbumPage() {
 
       {/* Media List */}
       <div className="overflow-hidden rounded-lg shadow-md bg-spotify-dark mt-8">
-        <table className="w-full">
+        <table className="w-full text-center">
           <thead>
             <tr className="text-spotify-grey">
               <th className="py-3 px-6">#</th>
@@ -222,11 +227,11 @@ function AlbumPage() {
                   </button>
                 </td>
                 <td className="px-6 py-4">{media.title}</td>
-                <td className="px-6 py-4">{media.artist.name}</td>
+                <td className="px-6 py-4">{albumDetails.creator}</td>
                 <td className="px-6 py-4">
                   {media.listenCount.toLocaleString()}
                 </td>
-                <td className="px-6 py-4">{/* Durée du média ici */}</td>
+                <td className="px-6 py-4">{formatDuration(media.duration)}</td>
               </tr>
             ))}
           </tbody>
