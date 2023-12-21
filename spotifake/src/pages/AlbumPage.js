@@ -76,6 +76,27 @@ function AlbumPage() {
     };
   }, [playingMedia, mediaDetails, setPlayingMedia, setCurrentTrackIndex]);
 
+  // Fonction pour incrémenter le nombre d'écoutes
+  const incrementListenCount = async (media, mediaIndex) => {
+    const newListenCount = media.listenCount + 1;
+
+    try {
+      await fetch(`${API_BASE_URL}/medias/${media._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ listenCount: newListenCount }),
+      });
+
+      const updatedMedias = [...mediaDetails];
+      updatedMedias[mediaIndex] = { ...media, listenCount: newListenCount };
+      setMediaDetails(updatedMedias);
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du nombre d'écoutes", error);
+    }
+  };
+
   const togglePlayPause = (media, mediaIndex) => {
     // Vérifiez si la piste actuelle est celle que vous voulez jouer/pauser
     const isCurrentTrack = playingMedia === mediaIndex;
@@ -98,6 +119,11 @@ function AlbumPage() {
       setIsPlaying(true); // Mettez à jour l'état local et global
       setPlayingMedia(mediaIndex); // Mettez à jour la piste en cours de lecture
       setCurrentTrackIndex(mediaIndex); // Mettez à jour l'indice de la piste dans le contexte global
+    }
+
+    // Si la nouvelle piste est jouée
+    if (!isPlaying || playingMedia !== mediaIndex) {
+      incrementListenCount(media, mediaIndex);
     }
   };
 

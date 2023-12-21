@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { FaPlayCircle } from "react-icons/fa";
+import { MusicPlayerContext } from "../contexts/MusicPlayerContext";
 
 const API_BASE_URL = "http://13.37.240.115:4000/spotifake-ral/v1";
 const predefinedGenres = ["Jazz", "Rock 'n' Roll", "Rock", "Country"];
@@ -7,6 +8,7 @@ const predefinedGenres = ["Jazz", "Rock 'n' Roll", "Rock", "Country"];
 function AllMedia() {
   const [medias, setMedias] = useState([]);
   const [selectedGenre, setSelectedGenre] = useState("Tous");
+  const { playSpecificTrack } = useContext(MusicPlayerContext);
 
   useEffect(() => {
     const fetchMedias = async () => {
@@ -16,14 +18,13 @@ function AllMedia() {
     };
 
     fetchMedias();
-  }, [selectedGenre]); // Ajout de selectedGenre dans le tableau de dépendances
+  }, []);
 
-  const filteredMedias =
-    selectedGenre === "Tous"
-      ? medias
-      : medias.filter((media) => media.genre === selectedGenre);
+  const handleMediaClick = (index) => {
+    playSpecificTrack(index, medias);
+  };
 
-  const renderCard = (media) => {
+  const renderCard = (media, index) => {
     const title = media.title;
     const artistName =
       media.artist && media.artist[0]
@@ -33,7 +34,11 @@ function AllMedia() {
       media.thumbnail || "https://d2be9zb8yn0dxh.cloudfront.net/";
 
     return (
-      <div key={media._id} className="group m-2">
+      <div
+        key={media._id}
+        onClick={() => handleMediaClick(index)}
+        className="group m-2"
+      >
         <div className="relative w-[250px] h-[350px] bg-black rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out cursor-pointer flex flex-col items-center pt-4">
           <img
             src={imageUrl}
@@ -52,6 +57,12 @@ function AllMedia() {
     );
   };
 
+  const filteredMedias = medias.filter(
+    (media) =>
+      selectedGenre === "Tous" ||
+      (media.genre && media.genre.includes(selectedGenre))
+  );
+
   return (
     <div className="p-8 bg-spotify-black text-white">
       <h2 className="text-2xl font-bold mb-4">Tous les Médias</h2>
@@ -63,7 +74,7 @@ function AllMedia() {
           id="genre-select"
           value={selectedGenre}
           onChange={(e) => setSelectedGenre(e.target.value)}
-          className="ml-2"
+          className="ml-2 text-black"
         >
           <option value="Tous">Tous les genres</option>
           {predefinedGenres.map((genre) => (
@@ -74,7 +85,7 @@ function AllMedia() {
         </select>
       </div>
       <div className="grid grid-cols-5 gap-4">
-        {filteredMedias.map((media) => renderCard(media))}
+        {filteredMedias.map((media, index) => renderCard(media, index))}
       </div>
     </div>
   );
