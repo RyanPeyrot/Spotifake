@@ -9,6 +9,9 @@ import CreatePlaylistPage from "./pages/CreatePlaylistPage";
 import AlbumPage from "./pages/AlbumPage";
 import AllMediaPage from "./pages/AllMediasPage";
 import { MusicPlayerProvider } from "./contexts/MusicPlayerContext"; // Assurez-vous que l'importation correspond aux exportations de votre fichier contexte
+import AllAlbumsPage from "./pages/AllAlbumsPage";
+import AllArtistsPage from "./pages/AllArtistsPage";
+import ArtistPage from "./pages/ArtistPage";
 
 function App() {
   return (
@@ -24,7 +27,10 @@ function App() {
               <Route path="/search" element={<SearchPage />} />
               <Route path="/create-playlist" element={<CreatePlaylistPage />} />
               <Route path="/album/:id" element={<AlbumPage />} />
+              <Route path="/artist/:artistId" element={<ArtistPage />} />
               <Route path="/all-medias" element={<AllMediaPage />} />
+              <Route path="/all-albums" element={<AllAlbumsPage />} />
+              <Route path="/all-artists" element={<AllArtistsPage />} />
             </Routes>
             <Footer />
           </div>

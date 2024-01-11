@@ -143,12 +143,12 @@ function AlbumPage() {
     );
   }
 
-  function formatDuration(seconds) {
-    if (isNaN(seconds)) {
-      return "0:00"; // Ou une autre représentation par défaut pour les durées indéterminées
-    }
+  function formatDuration(duration) {
+    const seconds = Math.round(duration); // Arrondir au nombre le plus proche pour éviter les décimales
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
+
+    // Retourner la durée formatée en "mm:ss"
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   }
 

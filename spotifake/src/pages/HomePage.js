@@ -52,12 +52,20 @@ function HomePage() {
         ? item.creator
         : "";
     const imageUrl = item.thumbnail || "https://d2be9zb8yn0dxh.cloudfront.net/"; // Remplacez par votre URL d'image par défaut
-    const linkPath = type === "media" ? "#" : `/album/${item._id}`;
+    const linkPath =
+      type === "artist"
+        ? `/artist/${item._id}`
+        : type === "media"
+        ? "#"
+        : `/album/${item._id}`;
 
     const handleClick = (type, item, index) => {
-      if (type === "media" && medias[index]) {
-        console.log("Média sélectionné:", medias[index]);
-        playSpecificTrack(index, medias);
+      // Lorsque l'on clique sur un média, on utilise l'index de la liste filtrée pour jouer le morceau spécifique.
+      if (type === "media") {
+        const trackIndex = medias.findIndex((media) => media._id === item._id);
+        if (trackIndex !== -1) {
+          playSpecificTrack(trackIndex, medias);
+        }
       }
     };
 
@@ -88,6 +96,9 @@ function HomePage() {
   };
 
   const MAX_MEDIA_DISPLAY = 5;
+  const displayedAlbums = albums.slice(0, 5);
+  const MAX_ARTIST_DISPLAY = 5;
+  const displayedArtists = artists.slice(0, MAX_ARTIST_DISPLAY);
 
   return (
     <div className="p-8 bg-spotify-black text-white">
@@ -101,17 +112,35 @@ function HomePage() {
 
       {/* Section Albums Populaires */}
       <section className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">Albums Populaires</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold mb-4">Albums Populaires</h2>
+          {albums.length > 5 && (
+            <div className="text-right mt-4">
+              <Link to="/all-albums" className="text-spotify-green">
+                Afficher plus
+              </Link>
+            </div>
+          )}
+        </div>
         <div className="grid grid-cols-5 gap-4">
-          {albums.map((album) => renderCard(album, "album"))}
+          {displayedAlbums.map((album) => renderCard(album, "album"))}
         </div>
       </section>
 
       {/* Section Artistes à Découvrir */}
       <section className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">Artistes à Découvrir</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Artistes à Découvrir</h2>
+          {artists.length > MAX_ARTIST_DISPLAY && (
+            <Link to="/all-artists" className="text-spotify-green">
+              Afficher plus
+            </Link>
+          )}
+        </div>
         <div className="grid grid-cols-5 gap-4">
-          {artists.map((artist) => renderCard(artist, "artist"))}
+          {displayedArtists.map((artist, index) =>
+            renderCard(artist, "artist", index)
+          )}
         </div>
       </section>
 
