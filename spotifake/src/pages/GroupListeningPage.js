@@ -1,10 +1,37 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import io from "socket.io-client";
+import { useNavigate } from "react-router-dom";
 
 function GroupListeningPage() {
   const [sessionID, setSessionID] = useState("");
   const [inSession, setInSession] = useState(false);
   const [userList, setUserList] = useState([]);
+  const navigate = useNavigate();
+  const socket = io("http://13.37.240.115:4000"); // Remplacez par l'URL de votre serveur
+
+  useEffect(() => {
+    if (sessionID) {
+      // Si un sessionID est stocké, rejoignez la session
+      joinSession(sessionID);
+    }
+
+    socket.on("mediaUpdated", (updatedSession) => {
+      console.log("Mise à jour de la session reçue:", updatedSession);
+      setUserList(updatedSession.users);
+      // Ici, ajoutez la logique pour jouer le nouveau média si nécessaire
+      // Par exemple, playMedia(updatedSession.currentMedia);
+    });
+
+    socket.on("updateError", (error) => {
+      console.error("Erreur lors de la mise à jour:", error);
+    });
+
+    return () => {
+      socket.off("mediaUpdated");
+      socket.off("updateError");
+    };
+  }, []);
 
   const generateRandomUsername = () => {
     const adjectives = [
@@ -29,11 +56,11 @@ function GroupListeningPage() {
         "http://13.37.240.115:4000/spotifake-ral/v1/sessions",
         { user: newUser }
       );
-
       const newSessionID = response.data._id;
       setSessionID(newSessionID);
       setInSession(true);
-      setUserList((prevUserList) => [...prevUserList, newUser]); // Ajoute le nouvel utilisateur à la liste
+      setUserList((prevUserList) => [...prevUserList, newUser]);
+      socket.emit("joinSession", newSessionID); // Rejoindre la session WebSocket
     } catch (error) {
       console.error("Erreur lors de la création de la session", error);
     }
@@ -41,28 +68,28 @@ function GroupListeningPage() {
 
   const handleLeaveSession = async (username) => {
     try {
-      // Supprimer l'utilisateur de la liste
       const updatedUserList = userList.filter((user) => user !== username);
       setUserList(updatedUserList);
-
       if (updatedUserList.length === 0) {
-        // S'il n'y a plus d'utilisateurs, supprimer la session
         await axios.delete(
           `http://13.37.240.115:4000/spotifake-ral/v1/sessions/${sessionID}`
         );
         setSessionID("");
         setInSession(false);
+        socket.emit("leaveSession", sessionID); // Quitter la session WebSocket
       } else {
-        // Mettre à jour la session avec les utilisateurs restants
         await axios.put(
           `http://13.37.240.115:4000/spotifake-ral/v1/sessions/${sessionID}`,
           { users: updatedUserList }
         );
       }
+
+      navigate("/");
     } catch (error) {
       console.error("Erreur lors de la sortie de la session", error);
     }
   };
+
   const handleJoinSession = async () => {
     if (sessionID) {
       try {
@@ -76,12 +103,30 @@ function GroupListeningPage() {
           `http://13.37.240.115:4000/spotifake-ral/v1/sessions/${sessionID}`
         );
         setInSession(true);
-        setUserList(sessionResponse.data.users); // Mettre à jour l'état avec la liste des utilisateurs de la réponse de l'API
+        setUserList(sessionResponse.data.users);
+        socket.emit("joinSession", sessionID); // Rejoindre la session WebSocket // Mettre à jour l'état avec la liste des utilisateurs de la réponse de l'API
       } catch (error) {
         console.error("Erreur lors de la jointure de la session", error);
       }
     } else {
       alert("Veuillez entrer un ID de session valide.");
+    }
+  };
+
+  const joinSession = async (sessionID) => {
+    try {
+      const sessionResponse = await axios.get(
+        `http://13.37.240.115:4000/spotifake-ral/v1/sessions/${sessionID}`
+      );
+      setInSession(true);
+      setUserList(sessionResponse.data.users);
+      socket.emit("joinSession", sessionID);
+    } catch (error) {
+      console.error("Erreur lors de la jointure de la session", error);
+      setSessionID("");
+      setInSession(false);
+      localStorage.removeItem("sessionID");
+      localStorage.removeItem("inSession");
     }
   };
 
@@ -123,6 +168,12 @@ function GroupListeningPage() {
                 <li key={index}>{user}</li>
               ))}
             </ul>
+            <button
+              className="bg-red-500 text-white py-2 px-4 mt-2 rounded-full hover:bg-red-700 transition duration-300"
+              onClick={handleLeaveSession}
+            >
+              Quitter la Session
+            </button>
           </div>
         </div>
       )}
