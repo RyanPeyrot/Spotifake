@@ -12,6 +12,7 @@ import { MusicPlayerProvider } from "./contexts/MusicPlayerContext"; // Assurez-
 import AllAlbumsPage from "./pages/AllAlbumsPage";
 import AllArtistsPage from "./pages/AllArtistsPage";
 import ArtistPage from "./pages/ArtistPage";
+import GroupListeningPage from "./pages/GroupListeningPage";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/create-playlist" element={<CreatePlaylistPage />} />
+              <Route path="/group-listening" element={<GroupListeningPage />} />
               <Route path="/album/:id" element={<AlbumPage />} />
               <Route path="/artist/:artistId" element={<ArtistPage />} />
               <Route path="/all-medias" element={<AllMediaPage />} />

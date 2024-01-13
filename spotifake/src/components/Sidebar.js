@@ -1,5 +1,5 @@
 import React from "react";
-import { FaSpotify, FaHome, FaSearch, FaPlus } from "react-icons/fa";
+import { FaSpotify, FaHome, FaSearch, FaPlus, FaUsers } from "react-icons/fa";
 import { Link } from "react-router-dom"; // Importez Link
 
 function Sidebar() {
@@ -29,6 +29,13 @@ function Sidebar() {
           className="flex items-center p-3 hover:bg-spotify-grey"
         >
           <FaPlus className="text-xl mr-3" /> Créer une playlist
+        </Link>
+
+        <Link
+          to="/group-listening"
+          className="flex items-center p-3 hover:bg-spotify-grey"
+        >
+          <FaUsers className="text-xl mr-3" /> Écoute de groupe
         </Link>
         {/* Continuez avec d'autres liens si nécessaire */}
       </div>
