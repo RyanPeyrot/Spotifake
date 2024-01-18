@@ -4,15 +4,18 @@ import io from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 
 function GroupListeningPage() {
-  const [sessionID, setSessionID] = useState("");
-  const [inSession, setInSession] = useState(false);
+  const [sessionID, setSessionID] = useState(
+    localStorage.getItem("sessionID") || ""
+  );
+  const [inSession, setInSession] = useState(
+    localStorage.getItem("inSession") === "true"
+  );
   const [userList, setUserList] = useState([]);
   const navigate = useNavigate();
-  const socket = io("http://13.37.240.115:4000"); // Remplacez par l'URL de votre serveur
+  const socket = io("http://13.37.240.115:4000/spotifake-ral/v1");
 
   useEffect(() => {
-    if (sessionID) {
-      // Si un sessionID est stocké, rejoignez la session
+    if (sessionID && inSession) {
       joinSession(sessionID);
     }
 
@@ -31,7 +34,7 @@ function GroupListeningPage() {
       socket.off("mediaUpdated");
       socket.off("updateError");
     };
-  }, []);
+  }, [sessionID, inSession]);
 
   const generateRandomUsername = () => {
     const adjectives = [
@@ -60,30 +63,25 @@ function GroupListeningPage() {
       setSessionID(newSessionID);
       setInSession(true);
       setUserList((prevUserList) => [...prevUserList, newUser]);
+      localStorage.setItem("sessionID", newSessionID);
+      localStorage.setItem("inSession", "true");
       socket.emit("joinSession", newSessionID); // Rejoindre la session WebSocket
     } catch (error) {
       console.error("Erreur lors de la création de la session", error);
     }
   };
 
-  const handleLeaveSession = async (username) => {
+  const handleLeaveSession = async () => {
     try {
-      const updatedUserList = userList.filter((user) => user !== username);
-      setUserList(updatedUserList);
-      if (updatedUserList.length === 0) {
-        await axios.delete(
-          `http://13.37.240.115:4000/spotifake-ral/v1/sessions/${sessionID}`
-        );
-        setSessionID("");
-        setInSession(false);
-        socket.emit("leaveSession", sessionID); // Quitter la session WebSocket
-      } else {
-        await axios.put(
-          `http://13.37.240.115:4000/spotifake-ral/v1/sessions/${sessionID}`,
-          { users: updatedUserList }
-        );
-      }
-
+      await axios.delete(
+        `http://13.37.240.115:4000/spotifake-ral/v1/sessions/${sessionID}`
+      );
+      localStorage.removeItem("sessionID");
+      localStorage.removeItem("inSession");
+      setSessionID("");
+      setInSession(false);
+      setUserList([]);
+      socket.emit("leaveSession", sessionID);
       navigate("/");
     } catch (error) {
       console.error("Erreur lors de la sortie de la session", error);
@@ -98,15 +96,17 @@ function GroupListeningPage() {
           `http://13.37.240.115:4000/spotifake-ral/v1/sessions/${sessionID}`,
           { user: newUser }
         );
-        // Récupérer l'état de la session après avoir rejoint pour obtenir la liste des utilisateurs mise à jour
         const sessionResponse = await axios.get(
           `http://13.37.240.115:4000/spotifake-ral/v1/sessions/${sessionID}`
         );
         setInSession(true);
         setUserList(sessionResponse.data.users);
-        socket.emit("joinSession", sessionID); // Rejoindre la session WebSocket // Mettre à jour l'état avec la liste des utilisateurs de la réponse de l'API
+        localStorage.setItem("sessionID", sessionID);
+        localStorage.setItem("inSession", "true");
+        socket.emit("joinSession", sessionID);
       } catch (error) {
         console.error("Erreur lors de la jointure de la session", error);
+        // Gestion d'erreur supplémentaire si nécessaire
       }
     } else {
       alert("Veuillez entrer un ID de session valide.");
