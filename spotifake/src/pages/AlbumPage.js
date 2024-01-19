@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { MusicPlayerContext } from "../contexts/MusicPlayerContext"; // Assurez-vous que le chemin d'importation est correct
 
-const API_BASE_URL = "http://13.37.240.115:4000/spotifake-ral/v1";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 function AlbumPage() {
   const { id } = useParams();

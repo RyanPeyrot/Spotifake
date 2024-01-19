@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaPlayCircle } from "react-icons/fa";
 
-const API_BASE_URL = "http://13.37.240.115:4000/spotifake-ral/v1";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 function AllArtistsPage() {
   const [artists, setArtists] = useState([]);

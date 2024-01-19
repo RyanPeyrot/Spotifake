@@ -10,6 +10,8 @@ import {
   FaVolumeMute,
 } from "react-icons/fa";
 import { MusicPlayerContext } from "../contexts/MusicPlayerContext";
+import { useSession } from "../contexts/SessionContext";
+import io from "socket.io-client";
 
 function PlayerControls() {
   const {
@@ -20,8 +22,9 @@ function PlayerControls() {
     tracks,
     audioRef,
   } = useContext(MusicPlayerContext);
-
+  const socket = io("http://13.37.240.115:4000/");
   const [trackProgress, setTrackProgress] = useState(0);
+  const { inSession, sessionID } = useSession();
   const [isShuffle, setIsShuffle] = useState(false);
   const [isLooping, setIsLooping] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -43,6 +46,26 @@ function PlayerControls() {
     setTrackProgress(audioRef.current.currentTime / audioRef.current.duration);
   };
 
+  useEffect(() => {
+    socket.on("mediaUpdated", (updatedSession) => {
+      if (updatedSession.sessionID === sessionID) {
+        const newTrackIndex = tracks.findIndex(
+          (track) => track.id === updatedSession.currentMedia.id
+        );
+        if (newTrackIndex !== -1) {
+          setCurrentTrackIndex(newTrackIndex);
+          audioRef.current.src = tracks[newTrackIndex].storage;
+          audioRef.current.play();
+          setIsPlaying(true);
+        }
+      }
+    });
+
+    return () => {
+      socket.off("mediaUpdated");
+    };
+  }, [sessionID, tracks, setCurrentTrackIndex, audioRef]);
+
   const onScrubStart = () => {
     if (isPlaying) {
       audioRef.current.pause();
@@ -56,12 +79,19 @@ function PlayerControls() {
   };
 
   const playPauseHandler = () => {
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
+    const isNowPlaying = !isPlaying;
+    if (isNowPlaying) {
       audioRef.current.play();
+      if (inSession) {
+        socket.emit("updateMedia", {
+          sessionID,
+          mediaId: tracks[currentTrackIndex].id,
+        });
+      }
+    } else {
+      audioRef.current.pause();
     }
-    setIsPlaying(!isPlaying);
+    setIsPlaying(isNowPlaying);
   };
 
   const shuffleHandler = () => {
@@ -82,7 +112,20 @@ function PlayerControls() {
     audioRef.current.src = tracks[newIndex].storage;
     audioRef.current.play();
     setIsPlaying(true);
-  }, [currentTrackIndex, isShuffle, tracks, setIsPlaying]);
+    if (inSession) {
+      socket.emit("updateMedia", {
+        sessionID,
+        mediaId: tracks[newIndex].id,
+      });
+    }
+  }, [
+    currentTrackIndex,
+    isShuffle,
+    tracks,
+    setIsPlaying,
+    inSession,
+    sessionID,
+  ]);
 
   useEffect(() => {
     audioRef.current.onended = () => {

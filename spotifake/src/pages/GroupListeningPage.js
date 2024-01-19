@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import io from "socket.io-client";
 import { useNavigate } from "react-router-dom";
+import { MusicPlayerContext } from "../contexts/MusicPlayerContext";
 
 function GroupListeningPage() {
   const [sessionID, setSessionID] = useState(
@@ -12,18 +13,24 @@ function GroupListeningPage() {
   );
   const [userList, setUserList] = useState([]);
   const navigate = useNavigate();
-  const socket = io("http://13.37.240.115:4000/spotifake-ral/v1");
+  const [currentMedia, setCurrentMedia] = useState(null);
+  const socket = io("http://13.37.240.115:4000/");
+  const { setCurrentTrackIndex, tracks, audioRef } =
+    useContext(MusicPlayerContext);
 
   useEffect(() => {
     if (sessionID && inSession) {
       joinSession(sessionID);
     }
 
+    socket.on("connect", () => {
+      console.log("TU ES BIEN CONNECTE UWU");
+    });
     socket.on("mediaUpdated", (updatedSession) => {
       console.log("Mise à jour de la session reçue:", updatedSession);
       setUserList(updatedSession.users);
-      // Ici, ajoutez la logique pour jouer le nouveau média si nécessaire
-      // Par exemple, playMedia(updatedSession.currentMedia);
+      setCurrentMedia(updatedSession.currentMedia);
+      playMedia(updatedSession.currentMedia);
     });
 
     socket.on("updateError", (error) => {
@@ -34,7 +41,18 @@ function GroupListeningPage() {
       socket.off("mediaUpdated");
       socket.off("updateError");
     };
-  }, [sessionID, inSession]);
+  }, [sessionID, inSession, setCurrentTrackIndex, tracks, audioRef]);
+
+  const playMedia = (media) => {
+    if (media) {
+      const trackIndex = tracks.findIndex((track) => track.id === media.id);
+      if (trackIndex !== -1) {
+        setCurrentTrackIndex(trackIndex);
+        audioRef.current.src = tracks[trackIndex].storage;
+        audioRef.current.play();
+      }
+    }
+  };
 
   const generateRandomUsername = () => {
     const adjectives = [

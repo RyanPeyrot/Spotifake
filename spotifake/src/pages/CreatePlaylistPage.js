@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { useSession } from "../contexts/SessionContext";
 
-const API_BASE_URL = "http://13.37.240.115:4000/spotifake-ral/v1";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 const ITEMS_PER_PAGE = 8;
 
 function CreatePlaylistPage() {
@@ -12,6 +13,14 @@ function CreatePlaylistPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [playlistThumbnail, setPlaylistThumbnail] = useState(null);
   const [creatorName, setCreatorName] = useState("");
+  const {
+    sessionID,
+    setSessionID,
+    inSession,
+    setInSession,
+    userList,
+    setUserList,
+  } = useSession();
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/medias`)

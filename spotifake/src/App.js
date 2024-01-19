@@ -13,34 +13,43 @@ import AllAlbumsPage from "./pages/AllAlbumsPage";
 import AllArtistsPage from "./pages/AllArtistsPage";
 import ArtistPage from "./pages/ArtistPage";
 import GroupListeningPage from "./pages/GroupListeningPage";
+import { SessionProvider } from "./contexts/SessionContext"; // Assurez-vous que le chemin est correct
 
 function App() {
   return (
-    <MusicPlayerProvider>
-      {" "}
-      {/* Utilisez le Provider ici pour englober toute l'application */}
-      <Router>
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <div className="flex-1 min-h-screen">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/create-playlist" element={<CreatePlaylistPage />} />
-              <Route path="/group-listening" element={<GroupListeningPage />} />
-              <Route path="/album/:id" element={<AlbumPage />} />
-              <Route path="/artist/:artistId" element={<ArtistPage />} />
-              <Route path="/all-medias" element={<AllMediaPage />} />
-              <Route path="/all-albums" element={<AllAlbumsPage />} />
-              <Route path="/all-artists" element={<AllArtistsPage />} />
-            </Routes>
-            <Footer />
+    <SessionProvider>
+      <MusicPlayerProvider>
+        {" "}
+        {/* Utilisez le Provider ici pour englober toute l'application */}
+        <Router>
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <div className="flex-1 min-h-screen">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route
+                  path="/create-playlist"
+                  element={<CreatePlaylistPage />}
+                />
+                <Route
+                  path="/group-listening"
+                  element={<GroupListeningPage />}
+                />
+                <Route path="/album/:id" element={<AlbumPage />} />
+                <Route path="/artist/:artistId" element={<ArtistPage />} />
+                <Route path="/all-medias" element={<AllMediaPage />} />
+                <Route path="/all-albums" element={<AllAlbumsPage />} />
+                <Route path="/all-artists" element={<AllArtistsPage />} />
+              </Routes>
+              <Footer />
+            </div>
+            <PlayerControls />{" "}
+            {/* PlayerControls aura désormais accès au contexte */}
           </div>
-          <PlayerControls />{" "}
-          {/* PlayerControls aura désormais accès au contexte */}
-        </div>
-      </Router>
-    </MusicPlayerProvider>
+        </Router>
+      </MusicPlayerProvider>
+    </SessionProvider>
   );
 }
 

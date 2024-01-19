@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
-const API_BASE_URL = "http://13.37.240.115:4000/spotifake-ral/v1";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 function ArtistPage() {
   const { artistId } = useParams();
